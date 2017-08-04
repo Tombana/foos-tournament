@@ -1,0 +1,57 @@
+<% @positioncolors = ["Blue", "Blue", "Red", "Red"] %>
+<% @positionroles = ["Defence", "Offence", "Offence", "Defence"] %>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Create new match</title>
+        <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <div class="container" id="content">
+
+            <div class="col-md-12">
+                <h3>Players in the room</h3>
+                <table class="table">
+                    <tr><th>Player name</th><th>Join the next match</th></tr>
+                    <% $room.each do |n| %>
+                        <tr><td><%= n %></td><td>
+                                <a class="btn btn-primary" role="button" href="/joinmatchposition/1/<%= n %>">Blue defence <span class="glyphicon glyphicon-remove-circle"></span></a>
+                                <a class="btn btn-primary" role="button" href="/joinmatchposition/2/<%= n %>">Blue offence <span class="glyphicon glyphicon-screenshot"></span></a>
+                                <a class="btn btn-danger"  role="button" href="/joinmatchposition/3/<%= n %>">Red offence  <span class="glyphicon glyphicon-screenshot"></span></a>
+                                <a class="btn btn-danger"  role="button" href="/joinmatchposition/4/<%= n %>">Red defence  <span class="glyphicon glyphicon-remove-circle"></span></a>
+                            </td></tr>
+                        <% end %>
+                </table>
+            </div>
+
+            <div class="col-md-12">
+                <h3>Players in the next match</h3>
+                <table class="table">
+                    <tr>
+                        <th>Player</th>
+                        <th>Team</th>
+                        <th>Role</th>
+                    </tr>
+                    <% $joined_names.each_with_index do |name, idx| %>
+                    <tr>
+                        <td>
+                        <% if name != 0 %>
+                            <%= name %>
+                        <% else %>
+                            -
+                        <% end %></td>
+                        <td><%= @positioncolors[idx] %></td>
+                        <td><%= @positionroles[idx] %></td>
+                    </tr>
+                    <%
+                        end
+                    %>
+                </table>
+            </div>
+
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </body>
+</html>

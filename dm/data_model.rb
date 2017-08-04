@@ -32,6 +32,20 @@ class Division
   property :current_round, Integer
 end
 
+class Cwigroup
+  include DataMapper::Resource
+
+  property :id,      Serial
+
+  belongs_to :season
+  has n, :groupplayers
+  has n, :players, :through => :groupplayers
+  has n, :cwimatches
+
+  property :name,          String
+  property :scoring,       Integer
+end
+
 class Divisionplayer
   include DataMapper::Resource
 
@@ -42,12 +56,22 @@ class Divisionplayer
   property :planned_matches, Float
 end
 
+class Groupplayer
+  include DataMapper::Resource
+
+  belongs_to :cwigroup, :key => true
+  belongs_to :player, :key => true
+end
+
 class Player
   include DataMapper::Resource
 
   property :id,        Serial
   has n, :divisionplayers
   has n, :divisions, :through => :divisionplayers
+
+  has n, :groupplayers
+  has n, :cwigroups, :through => :groupplayers
 
   property :name,      String
   property :email,     String
@@ -84,6 +108,28 @@ class Match
   property :score3b,  Integer  # p2+p3
 
   property :status,   Integer  # 0=pending 1=cancelled 2=played
+  property :time,     DateTime
+  property :duration, Integer
+end
+
+#
+# Describes a single match that has already been played
+# No submatches
+#
+class Cwimatch
+  include DataMapper::Resource
+
+  property :id,       Serial
+  belongs_to :cwigroup
+
+  property :pl1,      Integer
+  property :pl2,      Integer
+  property :pl3,      Integer
+  property :pl4,      Integer
+
+  property :score1a,  Integer  # p1+p2
+  property :score1b,  Integer  # p3+p4
+
   property :time,     DateTime
   property :duration, Integer
 end

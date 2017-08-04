@@ -2,6 +2,7 @@ $LOAD_PATH << '.'
 
 require 'dm/data_model'
 require 'player'
+require 'division_repository'
 
 class PlayerRepository
 
@@ -10,6 +11,14 @@ public
 def get(player_id)
   player_record = DataModel::Player.get(player_id)
   return map_record_to_entity(player_record)
+end
+
+def get_by_name(name)
+  player_records = DataModel::Player.all(:name => name)
+  if player_records.any?
+    return map_record_to_entity(player_records.first())
+  end
+  return nil
 end
 
 def get_all_players()
@@ -39,9 +48,18 @@ def get_division_players(division_id)
   return player_entities
 end
 
+def get_group_players(group_id)
+  player_records = DataModel::Player.all(DataModel::Player.cwigroups.id => group_id)
+  player_entities = []
+  player_records.each do |p|
+    player_entities << map_record_to_entity(p)
+  end
+  return player_entities
+end
+
 # TODO
 def assign_player(division_id, player_id, nmatches)
-  Divisionplayer.create(Divisionplayer.division.id => division_id, Divisionplayer.player.id => player_id)
+  DataModel::Divisionplayer.create(DataModel::Divisionplayer.division.id => division_id, DataModel::Divisionplayer.player.id => player_id)
 end
 
 def add(player_entity)

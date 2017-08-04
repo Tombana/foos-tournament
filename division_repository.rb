@@ -69,9 +69,9 @@ end
 
 def add(division_entity)
   division_record = DataModel::Division.new()
-  division_record.name = season_entity.name
-  division_record.level = season_entity.level
-  division_record.scoring = season_entity.scoring
+  division_record.name = division_entity.name
+  division_record.level = division_entity.level
+  division_record.scoring = division_entity.scoring
   division_record.save()
   division_entity.id = division_record.id
   return division_record.id

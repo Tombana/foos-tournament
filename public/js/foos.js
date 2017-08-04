@@ -9,13 +9,18 @@ function startup() {
 function load_section_by_hash() {
     hash = window.location.hash.slice(1);
     hash_parts = hash.split('-');
-    if (hash_parts.length != 2) {
-        return false;
-    } else {
+    if (hash_parts.length == 2) {
         season_id = hash_parts[0];
         division_id = hash_parts[1];
         load_season_section(season_id, division_id);
         return true;
+    } else if (hash_parts.length == 3) {
+        season_id = hash_parts[0];
+        group_id = hash_parts[2];
+        load_season_section(season_id, group_id, true);
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -24,17 +29,22 @@ function select_season() {
 	load_season_section(season_id);
 }
 
-function load_season_section(season_id, initial_subsection = 0) {
-	$("#content").load('ajax/season/' + season_id, function() { on_load_season_section(initial_subsection); });
+function load_season_section(season_id, initial_subsection = 0, isgroup = false) {
+	$("#content").load('ajax/season/' + season_id, function() { on_load_season_section(initial_subsection, isgroup); });
 	season_title = $(".season-selector[data-season-id=" + season_id + "]").text();
 	$("#season-selected").text(season_title);
 	return false;
 }
 
-function on_load_season_section(initial_subsection = 0) {
+function on_load_season_section(initial_subsection = 0, isgroup = false) {
 	$(".tab-summary").click(activate_tab_summary);
 	$(".tab-division").click(activate_tab_division);
-	$("#tab-link-" + initial_subsection).trigger("click");
+	$(".tab-group").click(activate_tab_group);
+    if (isgroup) {
+	    $("#tab-glink-" + initial_subsection).trigger("click");
+    } else {
+	    $("#tab-link-" + initial_subsection).trigger("click");
+    }
 }
 
 function activate_tab_summary() {
@@ -55,6 +65,14 @@ function activate_tab_division() {
 	return false;
 }
 
+function activate_tab_group() {
+	group_id = $(this).data('group-id');
+	load_group_subsection(group_id);
+	$(".tab-element").removeClass("active");
+	$("#tab-group-" + group_id).addClass("active");
+	window.location.hash = "#" + season_id + "-g-" + group_id;
+	return false;
+}
 
 /* Summary subsection */
 
@@ -111,13 +129,21 @@ function on_load_division_subsection() {
     activate_match_popovers();
 }
 
-function activate_player_rivals() {
-    player_id = $(this).data('player-id');
+function activate_player_rivals() { player_id = $(this).data('player-id');
     element = "#classification-detail-" + player_id;
 	$(".classification-detail").hide();
 	$("#classification-detail-" + player_id).show();
 }
 
+/* Group subsection */
+
+function load_group_subsection(group_id) {
+	$("#tab-content").load('ajax/group/' + group_id, on_load_group_subsection);
+}
+
+function on_load_group_subsection() {
+    // Nothing to do here
+}
 
 /* History modal */
 

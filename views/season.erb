@@ -5,6 +5,9 @@
 <% @divisions.each do |d| %>
   <li class="tab-element" id="tab-division-<%= d.id %>"><a href="#" class="tab-division" id="tab-link-<%= d.id %>" data-division-id="<%= d.id %>"><%= d.name %></a></li>
 <% end %>
+<% @groups.each do |g| %>
+  <li class="tab-element" id="tab-group-<%= g.id %>"><a href="#" class="tab-group" id="tab-glink-<%= g.id %>" data-group-id="<%= g.id %>"><%= g.name %></a></li>
+<% end %>
 </ul>
 
 <div id="tab-content">

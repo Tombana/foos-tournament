@@ -1,5 +1,8 @@
 $LOAD_PATH << '.'
 
+require 'bundler/setup'
+Bundler.require :default
+
 require 'sinatra'
 require 'conf'
 
@@ -12,6 +15,9 @@ require 'player_repository'
 require 'result_processor'
 require 'json'
 require 'foostastic'
+require 'cwiresult_processor'
+require 'cwimatch_repository'
+require 'cwigroup_repository'
 
 get '/' do
   season_repo = SeasonRepository.new()
@@ -21,11 +27,58 @@ get '/' do
   erb :web
 end
 
+$room = []
+$joined_names = [0, 0, 0, 0]
+
+get '/join/:name' do
+  if $room.nil?
+    $room = []
+  end
+  name = params[:name]
+  if (found_index = $room.find_index(name))
+    $room.delete_at(found_index)
+  else
+    if $room.length() >= 20 
+      $room.shift()
+    end
+  end
+  $room << name
+
+  erb :creatematch
+end
+
+get '/joinmatchposition/:pos/:name' do
+  position = params[:pos].to_i
+  if position >= 1 and position <= 4
+    if $joined_names.nil?
+      $joined_names = [0, 0, 0, 0]
+    end
+    name = params[:name]
+    if (found_index = $joined_names.find_index(name))
+      $joined_names[found_index] = 0
+    end
+    $joined_names[position-1] = name
+  end
+
+  erb :creatematch
+end
+
+get '/api/get_joined_names' do
+  if $joined_names.nil?
+    $joined_names = [0, 0, 0, 0]
+  end
+  json_api($joined_names)
+end
+
 get '/ajax/season/:season_id' do
   @season_id = params[:season_id].to_i
   season_repo = SeasonRepository.new()
   season = season_repo.get(@season_id)
   @divisions = season.divisions
+
+  group_repo = CWIGroupRepository.new()
+  @groups = group_repo.get_season_groups(@season_id);
+
   erb :season
 end
 
@@ -47,6 +100,18 @@ get '/ajax/summary/:season_id' do
   division_ids = @division_data.keys()
   @recent_matches = match_repo.get_recently_finished_matches(division_ids, 8)
 
+  group_repo = CWIGroupRepository.new()
+  @group_data = {}
+  groups = group_repo.get_season_groups(params[:season_id].to_i)
+  groups.each do |g|
+    @group_data[g.id] = {
+      :name => g.name,
+      :classification => g.get_current_classification()
+    }
+  end
+  cwimatch_repo = CWIMatchRepository.new()
+  @recent_cwimatches = cwimatch_repo.get_recently_finished_matches(8)
+
   player_repo = PlayerRepository.new
   @players = player_repo.get_all_players_by_id()
 
@@ -67,6 +132,19 @@ get '/ajax/division/:division' do
   @players = player_repo.get_all_players_by_id()
 
   erb :division
+end
+
+get '/ajax/group/:group' do
+  group_repo = CWIGroupRepository.new()
+  group = group_repo.get(params[:group].to_i)
+  @group_id = group.id
+  @classification = group.get_current_classification()
+  @matches = group.get_matches()
+
+  player_repo = PlayerRepository.new()
+  @players = player_repo.get_all_players_by_id()
+
+  erb :group
 end
 
 get '/ajax/history/:division' do
@@ -224,7 +302,7 @@ post '/ajax/simulation/:match' do
   erb :simulation
 end
 
-get %r{/api/v1/players/?$} do
+get %r{/api/v1/players/?} do
   player_repo = PlayerRepository.new()
   response = {}
   player_repo.get_all_players().each do |p|
@@ -233,13 +311,13 @@ get %r{/api/v1/players/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/players/(?<player_id>\d+)/?$} do
+get %r{/api/v1/players/(?<player_id>\d+)/?} do
   player_repo = PlayerRepository.new()
   p = player_repo.get(params[:player_id])
   json_api(player2api(p))
 end
 
-get %r{/api/v1/seasons/?$} do
+get %r{/api/v1/seasons/?} do
   season_repo = SeasonRepository.new()
   response = []
   season_repo.get_all_seasons().each do |s|
@@ -248,25 +326,25 @@ get %r{/api/v1/seasons/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/seasons/current/?$} do
+get %r{/api/v1/seasons/current/?} do
   season_repo = SeasonRepository.new()
   s = season_repo.get_most_recent_season()
   json_api(season2api(s))
 end
 
-get %r{/api/v1/seasons/(?<season_id>\d+)/?$} do
+get %r{/api/v1/seasons/(?<season_id>\d+)/?} do
   season_repo = SeasonRepository.new()
   s = season_repo.get(params[:season_id].to_i)
   json_api(season2api(s))
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/?} do
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
   json_api(division2api(d))
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/players/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/players/?} do
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
   response = {}
@@ -276,7 +354,7 @@ get %r{/api/v1/divisions/(?<division_id>\d+)/players/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/players/(?<player_id>\d+)/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/players/(?<player_id>\d+)/?} do
   response = {}
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
@@ -295,7 +373,7 @@ get %r{/api/v1/divisions/(?<division_id>\d+)/players/(?<player_id>\d+)/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/matches/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/matches/?} do
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
   response = []
@@ -307,7 +385,7 @@ get %r{/api/v1/divisions/(?<division_id>\d+)/matches/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/matches/open/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/matches/open/?} do
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
 
@@ -320,7 +398,7 @@ get %r{/api/v1/divisions/(?<division_id>\d+)/matches/open/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/matches/played/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/matches/played/?} do
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
 
@@ -333,7 +411,7 @@ get %r{/api/v1/divisions/(?<division_id>\d+)/matches/played/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/divisions/(?<division_id>\d+)/classification/?$} do
+get %r{/api/v1/divisions/(?<division_id>\d+)/classification/?} do
   division_repo = DivisionRepository.new()
   d = division_repo.get(params[:division_id].to_i)
   response = d.get_current_classification()
@@ -341,7 +419,7 @@ get %r{/api/v1/divisions/(?<division_id>\d+)/classification/?$} do
   json_api(response)
 end
 
-get %r{/api/v1/matches/(?<match_id>\d+)/?$} do
+get %r{/api/v1/matches/(?<match_id>\d+)/?} do
   match_repo = MatchRepository.new()
   match = match_repo.get(params[:match_id].to_i)
   match.calculate_victories()
@@ -401,17 +479,32 @@ post '/api/set_result' do
   body = request.body.read
   data = JSON.parse(body)
 
-  fd = open("results/result_" + Time.now.to_i.to_s + '_' + data['id'].to_s + ".json", "w")
-  fd.write(body)
-  fd.close()
+  if data['type'] == "quickmatch"
+    fd = open("results/result_" + Time.now.to_i.to_s + ".json", "w")
+    fd.write(body)
+    fd.close()
 
-  result = ResultProcessor.parse_result(data)
-  if result == false
-    json_api({'result' => 'Match result already processed'})
+    result = CWIResultProcessor.parse_result(data)
+    if result == false
+      json_api({'result' => 'Match result already processed'})
+    else
+      foostastic_webhook = Foostastic::Webhook.new
+      foostastic_webhook.run!
+      json_api({'result' => 'Match result correctly processed'})
+    end
   else
-    foostastic_webhook = Foostastic::Webhook.new
-    foostastic_webhook.run!
-    json_api({'result' => 'Match result correctly processed'})
+    fd = open("results/result_" + Time.now.to_i.to_s + '_' + data['id'].to_s + ".json", "w")
+    fd.write(body)
+    fd.close()
+
+    result = ResultProcessor.parse_result(data)
+    if result == false
+      json_api({'result' => 'Match result already processed'})
+    else
+      foostastic_webhook = Foostastic::Webhook.new
+      foostastic_webhook.run!
+      json_api({'result' => 'Match result correctly processed'})
+    end
   end
 end
 
