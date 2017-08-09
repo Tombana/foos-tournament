@@ -40,6 +40,10 @@ def joinRoom(name)
     end
   end
 
+  if name.nil? or name.length == 0 or name == "YourNameHere"
+    return
+  end
+
   if (found_index = $room.find_index(name))
     $room.delete_at(found_index)
   else
@@ -48,6 +52,11 @@ def joinRoom(name)
     end
   end
   $room << name
+end
+
+get '/join' do
+  joinRoom(nil) # Initialize room if its empty
+  erb :creatematch
 end
 
 get '/join/:name' do

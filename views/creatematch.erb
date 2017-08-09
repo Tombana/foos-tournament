@@ -3,23 +3,32 @@
     <head>
         <title>Create new match</title>
         <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css">
+        <style>
+            .blueteam {
+                color: #337ab7;
+            }
+            .redteam {
+                color: #d9534f;
+            }
+        </style>
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
         <div class="container" id="content">
             <div class="col-md-4">
-                <h3>Players in the next match</h3>
+                <h3>Players in the next match <span class="fa fa-futbol-o"></span></h3>
                 <table class="table">
                     <tr>
-                        <th class="text-left"><span style="color:#337ab7">Blue</span></th>
+                        <th class="text-left"><span class="blueteam">Blue</span></th>
                         <th colspan="3" style="text-align:center"><a class="btn btn-default" role="button" href="/swapjoined/3/4/1/2">swap <span class="glyphicon glyphicon-resize-horizontal"></span> teams</a></th>
-                        <th class="text-right"><span style="color:#d9534f">Red</span></th>
+                        <th class="text-right"><span class="redteam">Red</span></th>
                     </tr>
                     <tr>
                         <td class="text-left"><%= $joined_names[0] %></td>
-                        <td class="text-left"><span style="color:#337ab7" class="glyphicon glyphicon-chevron-left"></span></td>
-                        <td rowspan="3" style="text-align:center"><img style="width:100px;" src="/foosball_table.png"/></td>
-                        <td class="text-right"><span style="color:#d9534f" class="glyphicon glyphicon-chevron-right"></span></td>
+                        <td class="text-left" style="padding-left:0px;padding-right:0px"><span class="blueteam glyphicon glyphicon-chevron-left"></span><span class="blueteam fa fa-shield"></span></td>
+                        <td rowspan="3" style="text-align:center;padding-left:0px;padding-right:0px"><img style="width:100px;" src="/foosball_table.png"/></td>
+                        <td class="text-right" style="padding-left:0px;padding-right:0px"><span class="redteam fa fa-crosshairs"></span><span class="redteam glyphicon glyphicon-chevron-right"></span></td>
                         <td class="text-right"><%= $joined_names[2] %></td>
                     </tr>
                     <tr>
@@ -30,8 +39,8 @@
                     </tr>
                     <tr>
                         <td class="text-left"><%= $joined_names[1] %></td>
-                        <td class="text-left"><span style="color:#337ab7" class="glyphicon glyphicon-chevron-left"></span></td>
-                        <td class="text-right"><span style="color:#d9534f" class="glyphicon glyphicon-chevron-right"></span></td>
+                        <td class="text-left" style="padding-left:0px;padding-right:0px"><span class="blueteam glyphicon glyphicon-chevron-left"></span><span class="blueteam fa fa-crosshairs"></span></td>
+                        <td class="text-right" style="padding-left:0px;padding-right:0px"><span class="redteam fa fa-shield"></span><span class="redteam glyphicon glyphicon-chevron-right"></span></td>
                         <td class="text-right"><%= $joined_names[3] %></td>
                     </tr>
                 </table>
@@ -40,15 +49,34 @@
             <div class="col-md-4">
                 <h3>Players in the room</h3>
                 <table class="table">
-                    <tr><th>Player name</th><th>Join the next match</th></tr>
+                    <tr><th>Player name</th><th>Join the next match <span class="fa fa-futbol-o"></span></th></tr>
                     <% $room.reverse.each do |n| %>
-                        <tr><td><%= n %></td><td>
-                                <a class="btn btn-sm btn-primary" role="button" href="/joinmatchposition/1/<%= n %>">Def <span class="glyphicon glyphicon-remove-circle"></span></a>
-                                <a class="btn btn-sm btn-danger"  role="button" href="/joinmatchposition/3/<%= n %>">Atk  <span class="glyphicon glyphicon-screenshot"></span></a>
-                                <br/>
-                                <a class="btn btn-sm btn-primary" role="button" href="/joinmatchposition/2/<%= n %>">Atk <span class="glyphicon glyphicon-screenshot"></span></a>
-                                <a class="btn btn-sm btn-danger"  role="button" href="/joinmatchposition/4/<%= n %>">Def  <span class="glyphicon glyphicon-remove-circle"></span></a>
-                            </td></tr>
+                        <tr><td><%= n %></td>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <a style="width:55px" class="btn btn-sm btn-primary" role="button" href="/joinmatchposition/1/<%= n %>">Def <span class="fa fa-shield"></span></a>
+                                        </td>
+                                        <td style="width:10px">
+                                        </td>
+                                        <td>
+                                            <a style="width:55px" class="btn btn-sm btn-danger"  role="button" href="/joinmatchposition/3/<%= n %>">Atk  <span class="fa fa-crosshairs"></span></a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <a style="width:55px" class="btn btn-sm btn-primary" role="button" href="/joinmatchposition/2/<%= n %>">Atk <span class="fa fa-crosshairs"></span></a>
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>
+                                            <a style="width:55px" class="btn btn-sm btn-danger"  role="button" href="/joinmatchposition/4/<%= n %>">Def  <span class="fa fa-shield"></span></a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
                         <% end %>
                 </table>
             </div>
