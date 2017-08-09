@@ -3,17 +3,33 @@
 <div class="tab2-content tab2-content-classification">
 
 <div class="col-md-6">
+    <h3>Classification</h3>
 <table class="table table-condensed table-striped">
-<tr><th class="col-md-1 text-right">Pos</th><th class="col-md-4 text-left">Player</th><th class="col-md-2 text-right">Points</th><th class="col-md-2 text-right"># Matches</th></tr>
+    <tr>
+        <th class="col-md-1 text-right">Pos</th>
+        <th class="col-md-3 text-left">Player</th>
+        <th class="col-md-1 text-right">Points</th>
+        <th class="col-md-2 text-right"># Matches</th>
+        <th class="col-md-2 text-right">Attack Elo</th>
+        <th class="col-md-2 text-right">Defense Elo</th>
+    </tr>
 <% @classification.each do |c| %>
     <tr>
         <td class="text-right"><%= c[:position] %></td>
         <td class="text-left"><%= @players[c[:player_id]].name %></td>
         <td class="text-right"><span title="<%= "#{'%.2f' % c[:points]}" %>"><%= "#{'%.0f' % c[:points]}" %></span></td>
         <td class="text-right"><%= c[:num_matches] %></td>
+        <td class="text-right"><%= c[:attackElo]  %> (<%= c[:attackEloCount] %>)</td>
+        <td class="text-right"><%= c[:defenseElo] %> (<%= c[:defenseEloCount] %>)</td>
     </tr>
 <% end %>
 </table>
+</div>
+
+<div class="col-md-6">
+    <h3>Statistics</h3>
+    <h4><span style="color:#337ab7">Blue wins: <%= @statistics[0] %></span></h4>
+    <h4><span style="color:#d9534f">Red wins:  <%= @statistics[1] %></span></h4>
 </div>
 
 </div>
@@ -25,22 +41,22 @@
 <table class="table table-striped table-condensed">
     <tr>
         <th>Time</th>
-        <th>Player 1</th>
-        <th>Player 2</th>
+        <th><span style="color:#337ab7">Defense</span></th>
+        <th><span style="color:#337ab7">Offence</span></th>
         <th class="text-center">Score</th>
-        <th>Player 3</th>
-        <th>Player 4</th>
+        <th><span style="color:#d9534f">Offence</span></th>
+        <th><span style="color:#d9534f">Defense</span></th>
         <th class="text-center">Duration</th>
         <th class="text-center">Replays</th>
     </tr>
 <% @matches.each do |m| %>
 <tr>
 <td><%= m.get_time() %></td>
-<td><%= @players[m.players[0]].name %></td>
-<td><%= @players[m.players[1]].name %></td>
+<td><%= @players[m.players[0]].name %> (<%= m.elos[0].to_s + (if m.elodiffs[0] >= 0 then "+" else "" end) + m.elodiffs[0].to_s %>)</td>
+<td><%= @players[m.players[1]].name %> (<%= m.elos[1].to_s + (if m.elodiffs[1] >= 0 then "+" else "" end) + m.elodiffs[1].to_s %>)</td>
 <td class="text-center"><%= m.scores[0].to_s %>-<%= m.scores[1].to_s %></td>
-<td><%= @players[m.players[2]].name %></td>
-<td><%= @players[m.players[3]].name %></td>
+<td><%= @players[m.players[2]].name %> (<%= m.elos[2].to_s + (if m.elodiffs[2] >= 0 then "+" else "" end) + m.elodiffs[2].to_s %>)</td>
+<td><%= @players[m.players[3]].name %> (<%= m.elos[3].to_s + (if m.elodiffs[3] >= 0 then "+" else "" end) + m.elodiffs[3].to_s %>)</td>
 <td class="text-center"><%= m.get_duration() %></td>
 <td class="text-center">coming soon...</td>
 </tr>

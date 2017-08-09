@@ -1,5 +1,3 @@
-<% @positioncolors = ["<span style=\"color:#337ab7\">Blue</span>", "<span style=\"color:#337ab7\">Blue</span>", "<span style=\"color:#d9534f\">Red</span>", "<span style=\"color:#d9534f\">Red</span>"] %>
-<% @positionroles = ["Defence", "Offence", "Offence", "Defence"] %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -13,35 +11,43 @@
                 <h3>Players in the next match</h3>
                 <table class="table">
                     <tr>
-                        <th><span style="color:#337ab7">Blue team</span></th>
-                        <th colspan="2" style="text-align:center"><a class="btn btn-default" role="button" href="/this_has_not_been_implemented_yet">swap <span class="glyphicon glyphicon-resize-horizontal"></span> teams</a></th>
-                        <th><span style="color:#d9534f">Red team</span></th>
+                        <th class="text-left"><span style="color:#337ab7">Blue</span></th>
+                        <th colspan="3" style="text-align:center"><a class="btn btn-default" role="button" href="/swapjoined/3/4/1/2">swap <span class="glyphicon glyphicon-resize-horizontal"></span> teams</a></th>
+                        <th class="text-right"><span style="color:#d9534f">Red</span></th>
                     </tr>
                     <tr>
-                        <td><%= $joined_names[0] %></td>
-                        <td><span style="color:#337ab7" class="glyphicon glyphicon-chevron-left"></span> Defence</td>
-                        <td>Offence <span style="color:#d9534f" class="glyphicon glyphicon-chevron-right"></span></td>
-                        <td><%= $joined_names[2] %></td>
+                        <td class="text-left"><%= $joined_names[0] %></td>
+                        <td class="text-left"><span style="color:#337ab7" class="glyphicon glyphicon-chevron-left"></span></td>
+                        <td rowspan="3" style="text-align:center"><img style="width:100px;" src="/foosball_table.png"/></td>
+                        <td class="text-right"><span style="color:#d9534f" class="glyphicon glyphicon-chevron-right"></span></td>
+                        <td class="text-right"><%= $joined_names[2] %></td>
                     </tr>
                     <tr>
-                        <td><%= $joined_names[1] %></td>
-                        <td><span style="color:#337ab7" class="glyphicon glyphicon-chevron-left"></span> Offence </td>
-                        <td> Defence <span style="color:#d9534f" class="glyphicon glyphicon-chevron-right"></span></td>
-                        <td><%= $joined_names[3] %></td>
+                        <td class="text-left"><a class="btn btn-default btn-sm" role="button" href="/swapjoined/2/1/3/4"><span class="glyphicon glyphicon-resize-vertical"></span></a></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-right"><a class="btn btn-default btn-sm" role="button" href="/swapjoined/1/2/4/3"><span class="glyphicon glyphicon-resize-vertical"></span></a></td>
+                    </tr>
+                    <tr>
+                        <td class="text-left"><%= $joined_names[1] %></td>
+                        <td class="text-left"><span style="color:#337ab7" class="glyphicon glyphicon-chevron-left"></span></td>
+                        <td class="text-right"><span style="color:#d9534f" class="glyphicon glyphicon-chevron-right"></span></td>
+                        <td class="text-right"><%= $joined_names[3] %></td>
                     </tr>
                 </table>
             </div>
 
-            <div class="col-md-12">
+            <div class="col-md-4">
                 <h3>Players in the room</h3>
                 <table class="table">
                     <tr><th>Player name</th><th>Join the next match</th></tr>
                     <% $room.reverse.each do |n| %>
                         <tr><td><%= n %></td><td>
-                                <a class="btn btn-primary" role="button" href="/joinmatchposition/1/<%= n %>">Blue defence <span class="glyphicon glyphicon-remove-circle"></span></a>
-                                <a class="btn btn-primary" role="button" href="/joinmatchposition/2/<%= n %>">Blue offence <span class="glyphicon glyphicon-screenshot"></span></a>
-                                <a class="btn btn-danger"  role="button" href="/joinmatchposition/3/<%= n %>">Red offence  <span class="glyphicon glyphicon-screenshot"></span></a>
-                                <a class="btn btn-danger"  role="button" href="/joinmatchposition/4/<%= n %>">Red defence  <span class="glyphicon glyphicon-remove-circle"></span></a>
+                                <a class="btn btn-sm btn-primary" role="button" href="/joinmatchposition/1/<%= n %>">Def <span class="glyphicon glyphicon-remove-circle"></span></a>
+                                <a class="btn btn-sm btn-danger"  role="button" href="/joinmatchposition/3/<%= n %>">Atk  <span class="glyphicon glyphicon-screenshot"></span></a>
+                                <br/>
+                                <a class="btn btn-sm btn-primary" role="button" href="/joinmatchposition/2/<%= n %>">Atk <span class="glyphicon glyphicon-screenshot"></span></a>
+                                <a class="btn btn-sm btn-danger"  role="button" href="/joinmatchposition/4/<%= n %>">Def  <span class="glyphicon glyphicon-remove-circle"></span></a>
                             </td></tr>
                         <% end %>
                 </table>

@@ -11,6 +11,8 @@ attr_reader :time
 attr_reader :duration
 attr_reader :scores
 attr_reader :victories
+attr_accessor :elos
+attr_accessor :elodiffs
 attr_accessor :replayurls
 
 def initialize(id, players, group_id)
@@ -23,6 +25,9 @@ def initialize(id, players, group_id)
 
   @scores = []
   @victories = []
+
+  @elos = []
+  @elodiffs = []
 
   @replayurls = []
 end

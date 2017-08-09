@@ -35,11 +35,39 @@ def get_current_classification()
   return get_analysis()
 end
 
+def get_statistics()
+  team_wins = [0,0]
+  @matches.each do |m|
+    if m.scores[0] > m.scores[1]
+      team_wins[0] += 1
+    else
+      team_wins[1] += 1
+    end
+  end
+  return team_wins
+end
+
 private
 
 def get_analysis()
   @analysis_cache = analyse() if not @analysis_cache
   return @analysis_cache
+end
+
+# Map score[0],score[1] to number in [0,1]
+def getScore(scores)
+  a = scores[0]
+  b = scores[1]
+  if a == b
+    return 0.5
+  end
+  if a > b
+    a += 10
+  else
+    b += 10
+  end
+  # a / (a+b)
+  return a.fdiv(a + b)
 end
 
 def analyse()
@@ -52,23 +80,61 @@ def analyse()
       :position => 0,
       :points => 0,
       :num_matches => 0,
+      :attackElo => 1500.0,
+      :defenseElo => 1500.0,
+      :attackEloCount => 0,
+      :defenseEloCount => 0,
     }
   end
 
-  get_matches().each do |m|
+  get_matches().reverse.each do |m|
     m.players.zip(m.victories).each do |p,v|
-      if classification.include? p
-        classification[p][:points] += v
-        classification[p][:num_matches] += 1
-      else
+      if not classification.include? p
         classification[p] = {
           :player_id => p,
           :position => 0,
-          :points => v,
-          :num_matches => 1,
+          :points => 0,
+          :num_matches => 0,
+          :attackElo => 1500.0,
+          :defenseElo => 1500.0,
+          :attackEloCount => 0,
+          :defenseEloCount => 0,
         }
       end
+      classification[p][:points] += v
+      classification[p][:num_matches] += 1
     end
+    m.elos = [0,0,0,0]
+    m.elos[0] = classification[m.players[0]][:defenseElo].round
+    m.elos[1] = classification[m.players[1]][:attackElo].round
+    m.elos[2] = classification[m.players[2]][:attackElo].round
+    m.elos[3] = classification[m.players[3]][:defenseElo].round
+
+    blueElo = 0.6 * classification[m.players[0]][:defenseElo] + 0.4 * classification[m.players[1]][:attackElo]
+    redElo  = 0.6 * classification[m.players[3]][:defenseElo] + 0.4 * classification[m.players[2]][:attackElo]
+    # Expected score, number between 0 and 1
+    eBlue = 1.0 / (1.0 + (10.0 ** ((redElo - blueElo)/400.0)))
+    # Score function mapping m.scores to [0,1]
+    scoreBlue = getScore(m.scores)
+    # gain: score minus expectedscore
+    gainBlue = scoreBlue - eBlue
+    gainRed  = -gainBlue
+    # TODO: individual K factor per player
+    kFactor = 10.0
+    classification[m.players[0]][:defenseElo] += kFactor * gainBlue
+    classification[m.players[1]][:attackElo]  += kFactor * gainBlue
+    classification[m.players[2]][:attackElo]  += kFactor * gainRed
+    classification[m.players[3]][:defenseElo] += kFactor * gainRed
+    classification[m.players[0]][:defenseEloCount] += 1
+    classification[m.players[1]][:attackEloCount]  += 1
+    classification[m.players[2]][:attackEloCount]  += 1
+    classification[m.players[3]][:defenseEloCount] += 1
+
+    m.elodiffs = [0,0,0,0]
+    m.elodiffs[0] = (kFactor * gainBlue).round
+    m.elodiffs[1] = (kFactor * gainBlue).round
+    m.elodiffs[2] = (kFactor * gainRed).round
+    m.elodiffs[3] = (kFactor * gainRed).round
   end
 
   # Sort by points and then by number of matches (reverse)
@@ -81,6 +147,9 @@ def analyse()
   sorted_classification.each do |c|
     c[:position] = pos
     pos += 1
+
+    c[:attackElo] = c[:attackElo].round
+    c[:defenseElo] = c[:defenseElo].round
   end
 
   return sorted_classification

@@ -30,20 +30,28 @@ end
 $room = []
 $joined_names = [0, 0, 0, 0]
 
-get '/join/:name' do
-  if $room.nil?
+def joinRoom(name)
+  if $room.nil? or not $room.any?
     $room = []
+    player_repo = PlayerRepository.new()
+    players = player_repo.get_all_players()
+    players.each do |p|
+      $room << p.name
+    end
   end
-  name = params[:name]
+
   if (found_index = $room.find_index(name))
     $room.delete_at(found_index)
   else
-    if $room.length() >= 20 
+    if $room.length() >= 30 
       $room.shift()
     end
   end
   $room << name
+end
 
+get '/join/:name' do
+  joinRoom(params[:name])
   erb :creatematch
 end
 
@@ -54,10 +62,22 @@ get '/joinmatchposition/:pos/:name' do
       $joined_names = [0, 0, 0, 0]
     end
     name = params[:name]
+    joinRoom(name)
     if (found_index = $joined_names.find_index(name))
       $joined_names[found_index] = 0
     end
     $joined_names[position-1] = name
+  end
+
+  erb :creatematch
+end
+
+get '/swapjoined/:p1/:p2/:p3/:p4' do
+  temp = $joined_names
+  ps = [params[:p1].to_i, params[:p2].to_i, params[:p3].to_i, params[:p4].to_i]
+  # Check for duplicates and if all are in [1,4] range
+  if (ps.detect {|e| ps.rindex(e) != ps.index(e) }).nil? and (ps.detect {|e| e < 1 or e > 4}).nil?
+    $joined_names = [temp[ps[0]-1], temp[ps[1]-1], temp[ps[2]-1], temp[ps[3]-1]]
   end
 
   erb :creatematch
@@ -79,7 +99,7 @@ get '/ajax/season/:season_id' do
   group_repo = CWIGroupRepository.new()
   @groups = group_repo.get_season_groups(@season_id);
 
-  erb :season
+erb :season
 end
 
 get '/ajax/summary/:season_id' do
@@ -139,6 +159,7 @@ get '/ajax/group/:group' do
   group = group_repo.get(params[:group].to_i)
   @group_id = group.id
   @classification = group.get_current_classification()
+  @statistics = group.get_statistics()
   @matches = group.get_matches()
 
   player_repo = PlayerRepository.new()
@@ -194,7 +215,8 @@ get '/ajax/player/:player/:division' do
     if has_played_matches
       classification_before = full_classification_history[i-1][:classification]
       classification_after = full_classification_history[i][:classification]
-      player_state_before = classification_before.find {|x| x[:player_id] == @player_id}
+      player_state_before = classification_before.find {
+    | x | x[:player_id] == @player_id}
       player_state_after = classification_after.find {|x| x[:player_id] == @player_id}
       diff_points = player_state_after[:points] - player_state_before[:points]
       diff_position = player_state_after[:position] - player_state_before[:position]
