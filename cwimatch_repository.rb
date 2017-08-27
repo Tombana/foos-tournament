@@ -52,6 +52,11 @@ def map_record_to_entity(m)
   players = [m.pl1, m.pl2, m.pl3, m.pl4]
   match_entity = CWIMatch.new(m.id,players, m.cwigroup_id)
 
+  replay_records = DataModel::Replay.all(:cwimatch_id => m.id)
+  replay_records.each do |r|
+    match_entity.replays << {:url => r.url, :time => r.time}
+  end
+
   scores = [m.score1a, m.score1b]
   match_entity.set_scores(scores)
 

@@ -497,7 +497,23 @@ get '/api/get_open_matches' do
     response << division_data
   end
 
-  json_api(response)
+  if $joined_names.nil?
+    $joined_names = [0, 0, 0, 0]
+  end
+  group_repo = CWIGroupRepository.new()
+  groups = group_repo.get_season_groups(current_season.id);
+  group_response = []
+  groups.each do |g|
+    group_data = {:id => g.id, :name => g.name}
+    group_response << group_data
+  end
+  ranked_response = {:names => $joined_names,
+                     :groups => group_response}
+
+  new_response = {:competition => response, # Old system
+                  :ranked => ranked_response }
+
+  json_api(new_response)
 end
 
 before '/api/set_*' do

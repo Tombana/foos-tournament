@@ -22,7 +22,11 @@
 <td><%= @players[m.players[2]].name %></td>
 <td><%= @players[m.players[3]].name %></td>
 <td class="text-center"><%= m.get_duration() %></td>
-<td class="text-center">coming soon...</td>
+<td class="text-center">
+    <% m.replays.each do |r| %>
+        <a href="<%= r[:url] %>">At <%= r[:time].strftime("%H:%M") %></a> 
+    <% end %>
+</td>
 </tr>
 <% end %>
 </table>
@@ -66,7 +70,7 @@
 <h4><%= data[:name] %></h4>
 <table class="table table-condensed">
 <tr><th class="col-md-1 text-right">Pos</th><th class="col-md-4 text-left">Player</th><th class="col-md-2 text-right">Points</th></tr>
-<% data[:classification].each do |c| %>
+<% data[:classification][:overall].each do |c| %>
 <tr><td class="text-right"><%= c[:position] %></td><td class="text-left"><%= @players[c[:player_id]].name %></td><td class="text-right"><span title="<%= "#{'%.2f' % c[:points]}" %>"><%= "#{'%.0f' % c[:points]}" %></span></td></tr>
 <% end %>
 </table>

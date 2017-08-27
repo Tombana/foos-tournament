@@ -2,18 +2,18 @@
 
 <div class="tab2-content tab2-content-classification">
 
-<div class="col-md-6">
+<div class="col-md-12">
     <h3>Classification</h3>
 <table class="table table-condensed table-striped">
     <tr>
         <th class="col-md-1 text-right">Pos</th>
         <th class="col-md-3 text-left">Player</th>
-        <th class="col-md-1 text-right">Points</th>
-        <th class="col-md-2 text-right"># Matches</th>
+        <th class="col-md-1 text-right"># Won</th>
+        <th class="col-md-2 text-right"># Matches played</th>
         <th class="col-md-2 text-right">Attack Elo</th>
         <th class="col-md-2 text-right">Defense Elo</th>
     </tr>
-<% @classification.each do |c| %>
+<% @classification[:overall].each do |c| %>
     <tr>
         <td class="text-right"><%= c[:position] %></td>
         <td class="text-left"><%= @players[c[:player_id]].name %></td>
@@ -21,6 +21,48 @@
         <td class="text-right"><%= c[:num_matches] %></td>
         <td class="text-right"><%= c[:attackElo]  %> (<%= c[:attackEloCount] %>)</td>
         <td class="text-right"><%= c[:defenseElo] %> (<%= c[:defenseEloCount] %>)</td>
+    </tr>
+<% end %>
+</table>
+</div>
+
+<div class="col-md-5">
+    <h3>Top 10 attackers</h3>
+    Need to play at least 5 matches as attacker to appear.
+<table class="table table-condensed table-striped">
+    <tr>
+        <th class="col-md-1 text-right">Pos</th>
+        <th class="col-md-2 text-left">Player</th>
+        <th class="col-md-1 text-right">Attack Elo</th>
+        <th class="col-md-1 text-right">Matches played as attacker</th>
+    </tr>
+    <% pos=0; @classification[:bestattackers].select{|a| a[:attackEloCount] >= 5 }.first(10).each do |c| %>
+    <tr>
+        <td class="text-right"><%= (pos += 1) %></td>
+        <td class="text-left"><%= @players[c[:player_id]].name %></td>
+        <td class="text-right"><%= c[:attackElo]  %></td>
+        <td class="text-right"><%= c[:attackEloCount] %></td>
+    </tr>
+<% end %>
+</table>
+</div>
+
+<div class="col-md-5">
+    <h3>Top 10 defenders</h3>
+    Need to play at least 5 matches as defender to appear.
+<table class="table table-condensed table-striped">
+    <tr>
+        <th class="col-md-1 text-right">Pos</th>
+        <th class="col-md-2 text-left">Player</th>
+        <th class="col-md-1 text-right">Defense Elo</th>
+        <th class="col-md-1 text-right">Matches played as defender</th>
+    </tr>
+<% pos=0; @classification[:bestdefenders].select{|a| a[:defenseEloCount] >= 5 }.first(10).each do |c| %>
+    <tr>
+        <td class="text-right"><%= (pos += 1) %></td>
+        <td class="text-left"><%= @players[c[:player_id]].name %></td>
+        <td class="text-right"><%= c[:defenseElo] %></td>
+        <td class="text-right"><%= c[:defenseEloCount] %></td>
     </tr>
 <% end %>
 </table>
@@ -52,13 +94,17 @@
 <% @matches.each do |m| %>
 <tr>
 <td><%= m.get_time() %></td>
-<td><%= @players[m.players[0]].name %> (<%= m.elos[0].to_s + (if m.elodiffs[0] >= 0 then "+" else "" end) + m.elodiffs[0].to_s %>)</td>
-<td><%= @players[m.players[1]].name %> (<%= m.elos[1].to_s + (if m.elodiffs[1] >= 0 then "+" else "" end) + m.elodiffs[1].to_s %>)</td>
+<td><% if m.scores[0] > m.scores[1] %><b><% end %><%= @players[m.players[0]].name %> (<%= m.elos[0].to_s + (if m.elodiffs[0] >= 0 then "+" else "" end) + m.elodiffs[0].to_s %>)<% if m.scores[0] > m.scores[1] %></b><% end %></td>
+<td><% if m.scores[0] > m.scores[1] %><b><% end %><%= @players[m.players[1]].name %> (<%= m.elos[1].to_s + (if m.elodiffs[1] >= 0 then "+" else "" end) + m.elodiffs[1].to_s %>)<% if m.scores[0] > m.scores[1] %></b><% end %></td>
 <td class="text-center"><%= m.scores[0].to_s %>-<%= m.scores[1].to_s %></td>
-<td><%= @players[m.players[2]].name %> (<%= m.elos[2].to_s + (if m.elodiffs[2] >= 0 then "+" else "" end) + m.elodiffs[2].to_s %>)</td>
-<td><%= @players[m.players[3]].name %> (<%= m.elos[3].to_s + (if m.elodiffs[3] >= 0 then "+" else "" end) + m.elodiffs[3].to_s %>)</td>
+<td><% if m.scores[1] > m.scores[0] %><b><% end %><%= @players[m.players[2]].name %> (<%= m.elos[2].to_s + (if m.elodiffs[2] >= 0 then "+" else "" end) + m.elodiffs[2].to_s %>)<% if m.scores[1] > m.scores[0] %></b><% end %></td>
+<td><% if m.scores[1] > m.scores[0] %><b><% end %><%= @players[m.players[3]].name %> (<%= m.elos[3].to_s + (if m.elodiffs[3] >= 0 then "+" else "" end) + m.elodiffs[3].to_s %>)<% if m.scores[1] > m.scores[0] %></b><% end %></td>
 <td class="text-center"><%= m.get_duration() %></td>
-<td class="text-center">coming soon...</td>
+<td class="text-center">
+    <% m.replays.each do |r| %>
+        <a href="<%= r[:url] %>">At <%= r[:time].strftime("%H:%M") %></a> 
+    <% end %>
+</td>
 </tr>
 <% end %>
 </table>

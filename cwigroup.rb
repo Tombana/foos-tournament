@@ -120,7 +120,7 @@ def analyse()
     gainBlue = scoreBlue - eBlue
     gainRed  = -gainBlue
     # TODO: individual K factor per player
-    kFactor = 10.0
+    kFactor = 20.0
     classification[m.players[0]][:defenseElo] += kFactor * gainBlue
     classification[m.players[1]][:attackElo]  += kFactor * gainBlue
     classification[m.players[2]][:attackElo]  += kFactor * gainRed
@@ -135,6 +135,23 @@ def analyse()
     m.elodiffs[1] = (kFactor * gainBlue).round
     m.elodiffs[2] = (kFactor * gainRed).round
     m.elodiffs[3] = (kFactor * gainRed).round
+  end
+
+  best_attackers = classification.values.sort do |a, b|
+    comp = b[:attackElo] <=> a[:attackElo]
+    comp.zero? ? (b[:defenseElo] <=> a[:defenseElo]) : comp
+  end
+  best_defenders = classification.values.sort do |a, b|
+    comp = b[:defenseElo] <=> a[:defenseElo]
+    comp.zero? ? (b[:attackElo] <=> a[:attackElo]) : comp
+  end
+  best_attackers.each do |c|
+    c[:attackElo] = c[:attackElo].round
+    c[:defenseElo] = c[:defenseElo].round
+  end
+  best_defenders.each do |c|
+    c[:attackElo] = c[:attackElo].round
+    c[:defenseElo] = c[:defenseElo].round
   end
 
   # Sort by points and then by number of matches (reverse)
@@ -152,7 +169,7 @@ def analyse()
     c[:defenseElo] = c[:defenseElo].round
   end
 
-  return sorted_classification
+  return {:overall => sorted_classification, :bestattackers => best_attackers, :bestdefenders => best_defenders}
 end
 
 end

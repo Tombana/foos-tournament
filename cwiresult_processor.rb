@@ -1,5 +1,6 @@
 $LOAD_PATH << '.'
 
+require 'dm/data_model'
 require 'player_repository'
 require 'cwimatch_repository'
 
@@ -12,7 +13,10 @@ module CWIResultProcessor
 # "end" => time
 
 def self.parse_result(data)
-  group_id = 1 #TODO: FIX THIS
+  group_id = 1
+  if not data['group_id'].nil?
+    group_id = data['group_id']
+  end
   playernames = data['players']
 
   #Find players in repo
@@ -40,7 +44,16 @@ def self.parse_result(data)
   match.set_scores(data['results'])
 
   match_repo = CWIMatchRepository.new()
-  match_repo.add(match)
+  match_id = match_repo.add(match)
+
+  replays = data['replays']
+  replays.each do |r|
+    replay_record = DataModel::Replay.new()
+    replay_record.url = r['url']
+    replay_record.time = Time.at(r['time'])
+    replay_record.cwimatch_id = match_id;
+    replay_record.save()
+  end
 
   return true
 end

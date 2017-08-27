@@ -121,6 +121,7 @@ class Cwimatch
 
   property :id,       Serial
   belongs_to :cwigroup
+  has n, :replays
 
   property :pl1,      Integer
   property :pl2,      Integer
@@ -132,6 +133,16 @@ class Cwimatch
 
   property :time,     DateTime
   property :duration, Integer
+end
+
+class Replay
+  include DataMapper::Resource
+
+  property :id,       Serial
+  belongs_to :cwimatch
+
+  property :url,      String
+  property :time,     DateTime
 end
 
 #DataMapper::Logger.new($stdout, :debug)
