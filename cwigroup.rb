@@ -61,11 +61,11 @@ def getScore(scores)
   if a == b
     return 0.5
   end
-  if a > b
-    a += 10
-  else
-    b += 10
-  end
+  #if a > b
+  #  a += 10
+  #else
+  #  b += 10
+  #end
   # a / (a+b)
   return a.fdiv(a + b)
 end
@@ -120,7 +120,7 @@ def analyse()
     gainBlue = scoreBlue - eBlue
     gainRed  = -gainBlue
     # TODO: individual K factor per player
-    kFactor = 20.0
+    kFactor = 50.0
     classification[m.players[0]][:defenseElo] += kFactor * gainBlue
     classification[m.players[1]][:attackElo]  += kFactor * gainBlue
     classification[m.players[2]][:attackElo]  += kFactor * gainRed
