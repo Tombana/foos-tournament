@@ -5,7 +5,6 @@ attr_reader :name
 attr_reader :scoring
 attr_reader :players
 
-@analysis_cache = nil
 
 def initialize(id, name, scoring, players, matches)
   @id = id
@@ -13,6 +12,7 @@ def initialize(id, name, scoring, players, matches)
   @scoring = scoring
   @players = players
   @matches = matches
+  @analysis_cache = nil
 end
 
 def get_player_ids()

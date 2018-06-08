@@ -47,7 +47,7 @@ def joinRoom(name)
   if (found_index = $room.find_index(name))
     $room.delete_at(found_index)
   else
-    if $room.length() >= 30 
+    if $room.length() >= 1000
       $room.shift()
     end
   end
@@ -99,16 +99,32 @@ get '/api/get_joined_names' do
   json_api($joined_names)
 end
 
+$global_combi_group = nil
+
 get '/ajax/season/:season_id' do
-  @season_id = params[:season_id].to_i
-  season_repo = SeasonRepository.new()
-  season = season_repo.get(@season_id)
-  @divisions = season.divisions
+  #@season_id = params[:season_id].to_i
+  #season_repo = SeasonRepository.new()
+  #season = season_repo.get(@season_id)
+  #@divisions = season.divisions
 
-  group_repo = CWIGroupRepository.new()
-  @groups = group_repo.get_season_groups(@season_id);
+  #group_repo = CWIGroupRepository.new()
+  #@groups = group_repo.get_season_groups(@season_id);
 
-erb :season
+  #erb :season
+
+  if $global_combi_group.nil?
+    group_repo = CWIGroupRepository.new()
+    $global_combi_group = group_repo.get_combi_group(params[:season_id].to_i)
+  end
+  #@group_id = group.id
+  @classification = $global_combi_group.get_current_classification()
+  @statistics = $global_combi_group.get_statistics()
+  @matches = $global_combi_group.get_matches()
+
+  player_repo = PlayerRepository.new()
+  @players = player_repo.get_all_players_by_id()
+
+  erb :group
 end
 
 get '/ajax/summary/:season_id' do
@@ -460,53 +476,54 @@ get %r{/api/v1/matches/(?<match_id>\d+)/?} do
 end
 
 get '/api/get_open_matches' do
-  season_repo = SeasonRepository.new()
-  match_repo = MatchRepository.new()
-  player_repo = PlayerRepository.new
-
-  current_season = season_repo.get_most_recent_season()
-  divisions = current_season.divisions
-
-  players = player_repo.get_all_players_by_id()
-
+#
+#  season_repo = SeasonRepository.new()
+#  match_repo = MatchRepository.new()
+#  player_repo = PlayerRepository.new
+#
+#  current_season = season_repo.get_most_recent_season()
+#  divisions = current_season.divisions
+#
+#  players = player_repo.get_all_players_by_id()
+#
   response = []
-  divisions.each do |d|
-    division_data = {}
-    division_data[:division_id] = d.id
-    division_data[:name] = d.name
-    division_data[:matches] = []
-    open_matches = d.get_open_matches()
-    open_matches.each do |m|
-      name1 = players[m.players[0]].name
-      name2 = players[m.players[1]].name
-      name3 = players[m.players[2]].name
-      name4 = players[m.players[3]].name
-      match_data = {
-        :id => m.id,
-        :round => m.round,
-        :player_ids => m.players,
-        :players => [name1, name2, name3, name4],
-        :submatches => [
-          [[name1, name2], [name3, name4]],
-          [[name1, name3], [name2, name4]],
-          [[name1, name4], [name2, name3]],
-        ]
-      }
-      division_data[:matches] << match_data
-    end
-    response << division_data
-  end
-
+#  divisions.each do |d|
+#    division_data = {}
+#    division_data[:division_id] = d.id
+#    division_data[:name] = d.name
+#    division_data[:matches] = []
+#    open_matches = d.get_open_matches()
+#    open_matches.each do |m|
+#      name1 = players[m.players[0]].name
+#      name2 = players[m.players[1]].name
+#      name3 = players[m.players[2]].name
+#      name4 = players[m.players[3]].name
+#      match_data = {
+#        :id => m.id,
+#        :round => m.round,
+#        :player_ids => m.players,
+#        :players => [name1, name2, name3, name4],
+#        :submatches => [
+#          [[name1, name2], [name3, name4]],
+#          [[name1, name3], [name2, name4]],
+#          [[name1, name4], [name2, name3]],
+#        ]
+#      }
+#      division_data[:matches] << match_data
+#    end
+#    response << division_data
+#  end
+#
   if $joined_names.nil?
     $joined_names = [0, 0, 0, 0]
   end
-  group_repo = CWIGroupRepository.new()
-  groups = group_repo.get_season_groups(current_season.id);
+#  group_repo = CWIGroupRepository.new()
+#  groups = group_repo.get_season_groups(current_season.id);
   group_response = []
-  groups.each do |g|
-    group_data = {:id => g.id, :name => g.name}
-    group_response << group_data
-  end
+#  groups.each do |g|
+#    group_data = {:id => g.id, :name => g.name}
+#    group_response << group_data
+#  end
   ranked_response = {:names => $joined_names,
                      :groups => group_response}
 
@@ -539,6 +556,9 @@ post '/api/set_result' do
       foostastic_webhook.run!
       json_api({'result' => 'Match result correctly processed'})
     end
+
+    # Trigger an ELO recomputation
+    $global_combi_group = nil
   else
     fd = open("results/result_" + Time.now.to_i.to_s + '_' + data['id'].to_s + ".json", "w")
     fd.write(body)

@@ -12,8 +12,7 @@
         <th class="col-md-2 text-right"># Matches played</th>
         <th class="col-md-2 text-right">Attack Elo</th>
         <th class="col-md-2 text-right">Defense Elo</th>
-    </tr>
-<% @classification[:overall].each do |c| %>
+    </tr> <% @classification[:overall].each do |c| %>
     <tr>
         <td class="text-right"><%= c[:position] %></td>
         <td class="text-left"><%= @players[c[:player_id]].name %></td>

@@ -34,6 +34,20 @@ def map_record_to_entity(gr)
   return group_entity
 end
 
+def get_combi_group(season_id)
+  all_players = []
+  all_matches = []
+  player_repo = PlayerRepository.new()
+  cwimatch_repo = CWIMatchRepository.new()
+  group_records = DataModel::Cwigroup.all(:season_id => season_id)
+  group_records.each do |gr|
+    all_players += player_repo.get_group_players(gr.id) # TODO: implement in player repo
+    all_matches += cwimatch_repo.get_group_matches(gr.id)
+  end
+  group_entity = CWIGroup.new(0, "GeneralGroup", 10, all_players, all_matches)
+  return group_entity
+end
+
 ### TODO below here
 
 def add(group_entity)
