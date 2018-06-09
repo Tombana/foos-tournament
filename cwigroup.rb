@@ -84,6 +84,7 @@ def analyse()
       :defenseElo => 1500.0,
       :attackEloCount => 0,
       :defenseEloCount => 0,
+      :latest_match_time => Time.new(2016),
     }
   end
 
@@ -99,10 +100,12 @@ def analyse()
           :defenseElo => 1500.0,
           :attackEloCount => 0,
           :defenseEloCount => 0,
+          :latest_match_time => Time.new(2016),
         }
       end
       classification[p][:points] += v
       classification[p][:num_matches] += 1
+      classification[p][:latest_match_time] = m.time.to_time
     end
     m.elos = [0,0,0,0]
     m.elos[0] = classification[m.players[0]][:defenseElo].round
@@ -136,6 +139,10 @@ def analyse()
     m.elodiffs[2] = (kFactor * gainRed).round
     m.elodiffs[3] = (kFactor * gainRed).round
   end
+
+  # Most recent match should be within 2 months + twice the number of matches in days
+  tnow = Time.now
+  classification = classification.select{|playerid,data| (tnow - data[:latest_match_time]) <= (2 * (30 + data[:num_matches]) * (24*60*60)) }
 
   best_attackers = classification.values.sort do |a, b|
     comp = b[:attackElo] <=> a[:attackElo]
